@@ -1,0 +1,32 @@
+# Dependencies
+node_modules/
+
+# Environment and secrets (keep .env.example)
+.env
+.env.local
+.env.*.local
+*.env
+!*.env.example
+service-account.json
+*-credentials.json
+
+# Build outputs
+dist/
+build/
+.next/
+out/
+
+# Logs and debug
+*.log
+npm-debug.log*
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Optional
+.cache/

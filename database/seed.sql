@@ -1,0 +1,3 @@
+-- Optional: run after init.sql if not using backend seed script.
+-- To create users with hashed passwords, run: node backend/scripts/seedUsers.js
+-- That will create lead@example.com and boe@example.com with password 'password'.
