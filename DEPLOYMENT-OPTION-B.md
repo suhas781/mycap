@@ -100,35 +100,37 @@ Ensure `psql` is on your PATH.
 
 ### 4.2 Run migrations in order
 
-From your project root (where the `database/` folder is), run:
+Set `DATABASE_URL` to your Supabase (or Neon) connection string—the same value you use in Render. Then run each migration with `psql` using `DATABASE_URL`.
 
 **Windows (PowerShell):**
 ```powershell
-$env:CONN = "YOUR_SUPABASE_CONNECTION_STRING"
-psql $env:CONN -f database/init.sql
-psql $env:CONN -f database/lead_conversion_details.sql
-psql $env:CONN -f database/courses.sql
-psql $env:CONN -f database/leads_metadata.sql
+$env:DATABASE_URL = "postgresql://postgres.xxxxx:YourPassword@aws-0-region.pooler.supabase.com:6543/postgres?sslmode=require"
+psql $env:DATABASE_URL -f database/init.sql
+psql $env:DATABASE_URL -f database/lead_conversion_details.sql
+psql $env:DATABASE_URL -f database/courses.sql
+psql $env:DATABASE_URL -f database/leads_metadata.sql
+psql $env:DATABASE_URL -f database/campaigns.sql
+psql $env:DATABASE_URL -f database/boe_campaigns_flow.sql
+psql $env:DATABASE_URL -f database/college_list_place.sql
+psql $env:DATABASE_URL -f database/migration_hr_architect.sql
 ```
 
 **Mac/Linux:**
 ```bash
-export CONN='YOUR_SUPABASE_CONNECTION_STRING'
-psql "$CONN" -f database/init.sql
-psql "$CONN" -f database/lead_conversion_details.sql
-psql "$CONN" -f database/courses.sql
-psql "$CONN" -f database/leads_metadata.sql
+export DATABASE_URL='postgresql://postgres.xxxxx:YourPassword@aws-0-region.pooler.supabase.com:6543/postgres?sslmode=require'
+psql "$DATABASE_URL" -f database/init.sql
+psql "$DATABASE_URL" -f database/lead_conversion_details.sql
+psql "$DATABASE_URL" -f database/courses.sql
+psql "$DATABASE_URL" -f database/leads_metadata.sql
+psql "$DATABASE_URL" -f database/campaigns.sql
+psql "$DATABASE_URL" -f database/boe_campaigns_flow.sql
+psql "$DATABASE_URL" -f database/college_list_place.sql
+psql "$DATABASE_URL" -f database/migration_hr_architect.sql
 ```
 
-**One-off (replace with your URI):**
-```bash
-psql "postgresql://postgres.xxxxx:YourPassword@aws-0-region.pooler.supabase.com:6543/postgres?sslmode=require" -f database/init.sql
-psql "postgresql://postgres.xxxxx:YourPassword@aws-0-region.pooler.supabase.com:6543/postgres?sslmode=require" -f database/lead_conversion_details.sql
-psql "postgresql://postgres.xxxxx:YourPassword@aws-0-region.pooler.supabase.com:6543/postgres?sslmode=require" -f database/courses.sql
-psql "postgresql://postgres.xxxxx:YourPassword@aws-0-region.pooler.supabase.com:6543/postgres?sslmode=require" -f database/leads_metadata.sql
-```
+You can copy `DATABASE_URL` from your `backend/.env` (same value you give to Render). Run any other SQL files your app expects in an order that respects dependencies.
 
-Run any other SQL files your app expects (e.g. `campaigns.sql`, `boe_campaigns_flow.sql`, `college_list_place.sql`, `migration_hr_architect.sql`, `seed.sql`) in an order that respects dependencies.
+**First HR account:** The app does not seed an HR user. After migrations, open your Vercel frontend URL and you’ll see **“First time? Create first HR account”** on the login page. Go to **/setup** and create the first user with your **@mycaptain.in** email and a password. That user is created as HR and can then sign in and add others.
 
 ---
 
@@ -148,7 +150,7 @@ Run any other SQL files your app expects (e.g. `campaigns.sql`, `boe_campaigns_f
 | **Supabase** | Create project → **Database** → Connection string **URI** (replace password, add `?sslmode=require`). |
 | **Render (backend)** | Root: `backend`. Build: `npm install`. Start: `node index.js`. Env: `DATABASE_URL` = Supabase URI, `JWT_SECRET` = long random string; optional: `GOOGLE_CREDENTIALS_JSON` for sheet sync. |
 | **Vercel (frontend)** | Root: `frontend`. Env: `VITE_API_URL` = Render backend URL (no trailing slash). |
-| **Your PC (migrations)** | Run `psql "<Supabase URI>" -f database/<file>.sql` for `init.sql`, `lead_conversion_details.sql`, `courses.sql`, `leads_metadata.sql`, and any other migrations. |
+| **Your PC (migrations)** | Set `DATABASE_URL` to your Supabase/Neon URI, then run `psql $env:DATABASE_URL -f database/<file>.sql` (PowerShell) or `psql "$DATABASE_URL" -f database/<file>.sql` (Mac/Linux) for each migration. |
 
 ---
 

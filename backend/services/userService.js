@@ -1,6 +1,12 @@
 import pool from '../config/db.js';
 import bcrypt from 'bcryptjs';
 
+/** Count users (for one-time setup: first HR is created when count is 0). */
+export async function countUsers() {
+  const r = await pool.query('SELECT COUNT(*) AS n FROM users');
+  return parseInt(r.rows[0]?.n || '0', 10);
+}
+
 /** Used by login – only columns that always exist (no migration required). */
 export async function findByEmail(email) {
   const r = await pool.query(
@@ -30,6 +36,25 @@ export async function createUser({ name, email, password, role }) {
 
 export async function comparePassword(plain, hash) {
   return bcrypt.compare(plain, hash);
+}
+
+/** Get user by id including password (for change-password). */
+export async function findByIdWithPassword(id) {
+  const r = await pool.query(
+    'SELECT id, name, email, password, role FROM users WHERE id = $1',
+    [id]
+  );
+  return r.rows[0] || null;
+}
+
+/** Update password. Verifies current password, then sets new one. */
+export async function updatePassword(userId, currentPassword, newPassword) {
+  const user = await findByIdWithPassword(userId);
+  if (!user) throw new Error('User not found');
+  const ok = await comparePassword(currentPassword, user.password);
+  if (!ok) throw new Error('Current password is incorrect');
+  const hashed = await bcrypt.hash(newPassword, 10);
+  await pool.query('UPDATE users SET password = $1 WHERE id = $2', [hashed, userId]);
 }
 
 /** List BOEs. If teamLeadId is set, only BOEs that report to that team lead. Excludes resigned. */
@@ -139,5 +164,48 @@ export async function updateEmploymentStatus(userId, status) {
   } catch (e) {
     if (e.code === '42703') throw new Error('Status not available. Run: node scripts/seedUsers.js');
     throw e;
+  }
+}
+
+/**
+ * Remove all users except keepUserId. HR only. Cleans FKs: lead_sources, leads, lead_status_history,
+ * campaign_assignments, campaign_logs, campaigns (reassign created_by), boe_campaigns, courses.
+ */
+export async function removeAllUsersExcept(keepUserId) {
+  const keepId = Number(keepUserId);
+  const r = await pool.query('SELECT id FROM users WHERE id != $1', [keepId]);
+  const ids = r.rows.map((row) => row.id);
+  if (ids.length === 0) return { removed: 0 };
+
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    await client.query('DELETE FROM lead_sources WHERE team_lead_id = ANY($1::int[])', [ids]);
+    await client.query('UPDATE leads SET assigned_boe_id = NULL WHERE assigned_boe_id = ANY($1::int[])', [ids]);
+    await client.query('DELETE FROM lead_status_history WHERE updated_by = ANY($1::int[])', [ids]);
+    await client.query('UPDATE users SET reports_to_id = NULL WHERE reports_to_id = ANY($1::int[])', [ids]);
+    try {
+      await client.query('DELETE FROM campaign_assignments WHERE boe_id = ANY($1::int[])', [ids]);
+    } catch (_) {}
+    try {
+      await client.query('DELETE FROM campaign_logs WHERE boe_id = ANY($1::int[])', [ids]);
+    } catch (_) {}
+    try {
+      await client.query('UPDATE campaigns SET created_by = $1 WHERE created_by = ANY($2::int[])', [keepId, ids]);
+    } catch (_) {}
+    try {
+      await client.query('DELETE FROM boe_campaigns WHERE boe_id = ANY($1::int[])', [ids]);
+    } catch (_) {}
+    try {
+      await client.query('DELETE FROM courses WHERE team_lead_id = ANY($1::int[])', [ids]);
+    } catch (_) {}
+    const del = await client.query('DELETE FROM users WHERE id = ANY($1::int[]) RETURNING id', [ids]);
+    await client.query('COMMIT');
+    return { removed: del.rowCount || 0 };
+  } catch (e) {
+    await client.query('ROLLBACK');
+    throw e;
+  } finally {
+    client.release();
   }
 }

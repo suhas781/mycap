@@ -46,66 +46,14 @@ async function seed() {
   }
   try {
     await createUser({
-      name: 'Team Lead',
-      email: 'lead@example.com',
+      name: 'Suhas G',
+      email: 'suhas.g@mycaptain.in',
       password: 'password',
-      role: 'team_lead',
+      role: 'hr',
     });
-    console.log('Created team_lead: lead@example.com');
+    console.log('Created hr: suhas.g@mycaptain.in');
   } catch (e) {
-    if (e.code === '23505') console.log('Team lead already exists');
-    else console.error(e);
-  }
-  for (const [name, email] of [
-    ['Team Lead 2', 'lead2@example.com'],
-    ['Team Lead 3', 'lead3@example.com'],
-  ]) {
-    try {
-      await createUser({ name, email, password: 'password', role: 'team_lead' });
-      console.log('Created team_lead:', email);
-    } catch (e) {
-      if (e.code === '23505') console.log('Team lead already exists:', email);
-      else console.error(e);
-    }
-  }
-  try {
-    await createUser({
-      name: 'BOE One',
-      email: 'boe@example.com',
-      password: 'password',
-      role: 'boe',
-    });
-    console.log('Created boe: boe@example.com');
-  } catch (e) {
-    if (e.code === '23505') console.log('BOE already exists');
-    else console.error(e);
-  }
-  for (const [name, email] of [
-    ['BOE Two', 'boe2@example.com'],
-    ['BOE Three', 'boe3@example.com'],
-    ['BOE Four', 'boe4@example.com'],
-    ['BOE Five', 'boe5@example.com'],
-  ]) {
-    try {
-      await createUser({ name, email, password: 'password', role: 'boe' });
-      console.log('Created boe:', email);
-    } catch (e) {
-      if (e.code === '23505') console.log('BOE already exists:', email);
-      else console.error(e);
-    }
-  }
-  try {
-    await createUser({ name: 'HR User', email: 'hr@example.com', password: 'password', role: 'hr' });
-    console.log('Created hr: hr@example.com');
-  } catch (e) {
-    if (e.code === '23505') console.log('HR already exists');
-    else console.error(e);
-  }
-  try {
-    await createUser({ name: 'Admin', email: 'admin@example.com', password: 'password', role: 'admin' });
-    console.log('Created admin: admin@example.com');
-  } catch (e) {
-    if (e.code === '23505') console.log('Admin already exists');
+    if (e.code === '23505') console.log('HR suhas.g@mycaptain.in already exists');
     else console.error(e);
   }
   await pool.end();

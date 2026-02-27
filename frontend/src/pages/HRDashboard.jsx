@@ -34,6 +34,8 @@ export default function HRDashboard() {
   const [savingId, setSavingId] = useState(null);
   const [savingReportsToId, setSavingReportsToId] = useState(null);
   const [savingStatusId, setSavingStatusId] = useState(null);
+  const [removingAll, setRemovingAll] = useState(false);
+  const [removeSuccess, setRemoveSuccess] = useState('');
   const user = getStoredUser();
   const navigate = useNavigate();
 
@@ -145,6 +147,29 @@ export default function HRDashboard() {
     }
   }
 
+  async function handleRemoveAllExceptMe() {
+    const otherCount = users.filter((u) => u.id !== user?.id).length;
+    if (otherCount === 0) {
+      setError('There are no other users to remove.');
+      return;
+    }
+    if (!window.confirm(`Remove all ${otherCount} other user(s)? You will remain the only user. This cannot be undone.`)) return;
+    setRemovingAll(true);
+    setError('');
+    try {
+      const result = await api('/users/remove-all-except-me', { method: 'POST' });
+      setUsers(users.filter((u) => u.id === user?.id));
+      if (result.removed != null) {
+        setRemoveSuccess(`Removed ${result.removed} user(s). You are now the only user.`);
+        setTimeout(() => setRemoveSuccess(''), 6000);
+      }
+    } catch (err) {
+      setError(err.message || 'Failed to remove users');
+    } finally {
+      setRemovingAll(false);
+    }
+  }
+
   async function handleAddSheet(e) {
     e.preventDefault();
     if (!newSheetName.trim() || !newSheetTeamLeadId || !newSheetId.trim()) return;
@@ -226,12 +251,29 @@ export default function HRDashboard() {
             {error}
           </div>
         )}
+        {removeSuccess && (
+          <div className="mb-4 p-3 rounded-lg bg-green-900/30 border border-green-700 text-green-200 text-sm" role="status">
+            {removeSuccess}
+          </div>
+        )}
 
         {activeTab === TAB_USERS && (
           <>
-            <p className="text-white/70 text-sm mb-4">
-              Assign roles and assign each BOE to a team leader. Each team leader only sees their assigned BOEs.
-            </p>
+            <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
+              <p className="text-white/70 text-sm">
+                Assign roles and assign each BOE to a team leader. Each team leader only sees their assigned BOEs.
+              </p>
+              {users.filter((u) => u.id !== user?.id).length > 0 && (
+                <button
+                  type="button"
+                  onClick={handleRemoveAllExceptMe}
+                  disabled={removingAll}
+                  className="px-3 py-1.5 rounded-lg text-sm font-medium bg-red-600 hover:bg-red-700 text-white disabled:opacity-50"
+                >
+                  {removingAll ? 'Removing…' : 'Remove all except me'}
+                </button>
+              )}
+            </div>
             {loading ? (
               <p className="text-white/80">Loading users…</p>
             ) : (

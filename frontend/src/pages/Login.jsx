@@ -1,13 +1,25 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { api, setToken, setStoredUser } from '../api';
+
+const API_BASE = import.meta.env.VITE_API_URL || '/api';
 
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [setupAllowed, setSetupAllowed] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+  const successMessage = location.state?.message;
+
+  useEffect(() => {
+    fetch(`${API_BASE}/auth/setup-status`)
+      .then((r) => r.json())
+      .then((data) => setSetupAllowed(data.allowed === true))
+      .catch(() => setSetupAllowed(false));
+  }, []);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -50,9 +62,17 @@ export default function Login() {
             <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
               Sign in to manage leads and teams
             </p>
+            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+              Use @mycaptain.id or @mycaptain.in email.
+            </p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
+            {successMessage && (
+              <div className="rounded-xl bg-green-50 dark:bg-green-950/40 border border-green-200 dark:border-green-800/50 px-4 py-3 text-sm text-green-700 dark:text-green-300">
+                {successMessage}
+              </div>
+            )}
             {error && (
               <div
                 className="flex items-center gap-2 rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800/50 px-4 py-3 text-sm text-red-700 dark:text-red-300"
@@ -106,6 +126,23 @@ export default function Login() {
                 'Sign in'
               )}
             </button>
+            <p className="text-center text-sm text-slate-500 dark:text-slate-400">
+              <Link to="/signup" className="text-primary-600 dark:text-primary-400 hover:underline font-medium">
+                Create account
+              </Link>
+              {' · '}
+              <Link to="/change-password" className="text-primary-600 dark:text-primary-400 hover:underline">
+                Change password
+              </Link>
+              {setupAllowed && (
+                <>
+                  {' · '}
+                  <Link to="/setup" className="text-primary-600 dark:text-primary-400 hover:underline font-medium">
+                    First time? Create first HR account
+                  </Link>
+                </>
+              )}
+            </p>
           </form>
         </div>
       </div>

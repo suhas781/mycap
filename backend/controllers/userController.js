@@ -1,4 +1,4 @@
-import { listBoes, listTeamLeads, listAllUsers, updateUserRole, updateReportsTo, updateEmploymentStatus } from '../services/userService.js';
+import { listBoes, listTeamLeads, listAllUsers, updateUserRole, updateReportsTo, updateEmploymentStatus, removeAllUsersExcept } from '../services/userService.js';
 
 /**
  * GET /users/team-leads - Admin or HR. List team leads (id, name) for analytics team filter.
@@ -69,5 +69,19 @@ export async function setEmploymentStatus(req, res) {
     return res.json(updated);
   } catch (err) {
     return res.status(500).json({ error: err.message || 'Failed to update status' });
+  }
+}
+
+/**
+ * POST /users/remove-all-except-me - HR only. Deletes all users except the current user.
+ */
+export async function removeAllExceptMe(req, res) {
+  try {
+    const keepUserId = req.user?.user_id;
+    if (!keepUserId) return res.status(401).json({ error: 'Not authenticated' });
+    const result = await removeAllUsersExcept(keepUserId);
+    return res.json({ ok: true, removed: result.removed });
+  } catch (err) {
+    return res.status(500).json({ error: err.message || 'Failed to remove users' });
   }
 }
