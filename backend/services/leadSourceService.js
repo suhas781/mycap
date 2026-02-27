@@ -12,9 +12,10 @@ export async function listByTeamLead(teamLeadId) {
   return r.rows;
 }
 
+/** List all sources; newest first (newly added at top). */
 export async function listAll() {
   const r = await pool.query(
-    'SELECT s.id, s.name, s.team_lead_id, s.google_sheet_id, s.sheet_range, s.created_at, u.name AS team_lead_name FROM lead_sources s JOIN users u ON u.id = s.team_lead_id ORDER BY s.name'
+    'SELECT s.id, s.name, s.team_lead_id, s.google_sheet_id, s.sheet_range, s.created_at, u.name AS team_lead_name FROM lead_sources s JOIN users u ON u.id = s.team_lead_id ORDER BY s.created_at DESC'
   );
   return r.rows;
 }
@@ -30,4 +31,10 @@ export async function create({ name, team_lead_id, google_sheet_id, sheet_range 
     [name, team_lead_id, (google_sheet_id || '').trim(), (sheet_range || '').trim()]
   );
   return r.rows[0];
+}
+
+/** Delete a lead source by id. Returns true if deleted. */
+export async function deleteById(id) {
+  const r = await pool.query('DELETE FROM lead_sources WHERE id = $1 RETURNING id', [Number(id)]);
+  return (r.rowCount || 0) > 0;
 }

@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { authRequired } from '../middleware/auth.js';
-import { listByTeamLead, listAll, create } from '../services/leadSourceService.js';
+import { listByTeamLead, listAll, create, deleteById } from '../services/leadSourceService.js';
 
 const router = Router();
 router.use(authRequired);
@@ -40,6 +40,23 @@ router.post('/', async (req, res) => {
     return res.status(201).json(source);
   } catch (err) {
     return res.status(500).json({ error: err.message || 'Failed to create source' });
+  }
+});
+
+/**
+ * DELETE /lead-sources/:id - HR or Admin only. Remove an uploaded sheet.
+ */
+router.delete('/:id', async (req, res) => {
+  try {
+    if (req.user.role !== 'admin' && req.user.role !== 'hr') {
+      return res.status(403).json({ error: 'Only Admin or HR can delete sheets' });
+    }
+    const id = Number(req.params.id);
+    const deleted = await deleteById(id);
+    if (!deleted) return res.status(404).json({ error: 'Sheet not found' });
+    return res.json({ ok: true, deleted: id });
+  } catch (err) {
+    return res.status(500).json({ error: err.message || 'Failed to delete sheet' });
   }
 });
 

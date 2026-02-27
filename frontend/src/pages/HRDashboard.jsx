@@ -46,6 +46,7 @@ export default function HRDashboard() {
   const [newSheetId, setNewSheetId] = useState('');
   const [newSheetRange, setNewSheetRange] = useState('');
   const [addingSheet, setAddingSheet] = useState(false);
+  const [deletingSheetId, setDeletingSheetId] = useState(null);
   const [campaigns, setCampaigns] = useState([]);
   const [campaignsWithAssignments, setCampaignsWithAssignments] = useState([]);
   const [campaignsLoading, setCampaignsLoading] = useState(false);
@@ -213,6 +214,20 @@ export default function HRDashboard() {
       setError(err.message || 'Failed to add sheet');
     } finally {
       setAddingSheet(false);
+    }
+  }
+
+  async function handleDeleteSheet(source) {
+    if (!window.confirm(`Delete sheet "${source.name}"? Leads linked to this source will be kept but the source will be removed.`)) return;
+    setDeletingSheetId(source.id);
+    setError('');
+    try {
+      await api(`/lead-sources/${source.id}`, { method: 'DELETE' });
+      setSources((prev) => prev.filter((s) => s.id !== source.id));
+    } catch (err) {
+      setError(err.message || 'Failed to delete sheet');
+    } finally {
+      setDeletingSheetId(null);
     }
   }
 
@@ -437,7 +452,7 @@ export default function HRDashboard() {
                 </button>
               </form>
             </div>
-            <h2 className="text-[#FF7A00] font-medium mb-3">Sheets linked to team leads</h2>
+            <h2 className="text-[#FF7A00] font-medium mb-3">Sheets linked to team leads (newest at top)</h2>
             <div className="rounded-lg border-2 border-[#0E0E0E] bg-[#1A1A1A] overflow-hidden">
               <table className="w-full text-left">
                 <thead>
@@ -446,6 +461,7 @@ export default function HRDashboard() {
                     <th className="px-4 py-3 font-semibold">Team lead</th>
                     <th className="px-4 py-3 font-semibold">Google Sheet ID</th>
                     <th className="px-4 py-3 font-semibold">Range</th>
+                    <th className="px-4 py-3 font-semibold w-20">Delete</th>
                   </tr>
                 </thead>
                 <tbody className="text-white">
@@ -455,6 +471,17 @@ export default function HRDashboard() {
                       <td className="px-4 py-2">{s.team_lead_name ?? '—'}</td>
                       <td className="px-4 py-2 font-mono text-xs text-white/80 truncate max-w-[12rem]" title={s.google_sheet_id}>{s.google_sheet_id || '—'}</td>
                       <td className="px-4 py-2 text-white/80">{s.sheet_range || '—'}</td>
+                      <td className="px-4 py-2">
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteSheet(s)}
+                          disabled={deletingSheetId === s.id}
+                          className="rounded px-2 py-1 text-xs font-medium bg-red-600 hover:bg-red-700 text-white disabled:opacity-50"
+                          title="Delete this sheet"
+                        >
+                          {deletingSheetId === s.id ? '…' : 'Delete'}
+                        </button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
