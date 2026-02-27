@@ -1,9 +1,9 @@
 /**
  * Shared auth form validation (signup / login).
- * Signup: email must end with @mycaptain.id; password min 6 chars; password === confirm_password.
+ * Signup: email must end with @mycaptain.in; password min 6 chars; password === confirm_password.
  */
 
-const SIGNUP_EMAIL_DOMAIN = '@mycaptain.id';
+const SIGNUP_EMAIL_DOMAIN = '@mycaptain.in';
 const MIN_PASSWORD_LENGTH = 6;
 
 export function normalizeEmail(email) {
@@ -21,7 +21,7 @@ export function validateSignupFields({ name, email, password, confirm_password }
 
   const e = normalizeEmail(email);
   if (!e) errors.email = 'Email is required';
-  else if (!e.endsWith(SIGNUP_EMAIL_DOMAIN)) errors.email = 'Email must end with @mycaptain.id';
+  else if (!e.endsWith(SIGNUP_EMAIL_DOMAIN)) errors.email = 'Email must end with @mycaptain.in';
 
   if (!password) errors.password = 'Password is required';
   else if (password.length < MIN_PASSWORD_LENGTH) errors.password = 'Password must be at least 6 characters';

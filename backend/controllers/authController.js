@@ -35,7 +35,7 @@ export async function signup(req, res) {
   }
 }
 
-/** Login: allow @mycaptain.id and @mycaptain.in. Returns JWT with user_id, role, name, email. */
+/** Login: allow @mycaptain.in only. Returns JWT with user_id, role, name, email. */
 export async function login(req, res) {
   const { email, password } = req.body;
   if (!email || !password) {
@@ -44,7 +44,7 @@ export async function login(req, res) {
   const normalizedEmail = normalizeEmail(email);
   if (!isValidLoginEmail(normalizedEmail)) {
     return res.status(403).json({
-      error: 'Use a @mycaptain.id or @mycaptain.in email to sign in.',
+      error: 'Use a @mycaptain.in email to sign in.',
     });
   }
   const user = await findByEmail(normalizedEmail);

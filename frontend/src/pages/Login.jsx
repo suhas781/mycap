@@ -63,7 +63,7 @@ export default function Login() {
               Sign in to manage leads and teams
             </p>
             <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-              Use @mycaptain.id or @mycaptain.in email.
+              Only @mycaptain.in email addresses can sign in.
             </p>
           </div>
 

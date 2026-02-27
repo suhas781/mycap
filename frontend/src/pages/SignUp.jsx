@@ -62,7 +62,7 @@ export default function SignUp() {
               Create account
             </h1>
             <p className="mt-2 text-sm text-white/60">
-              Use your @mycaptain.id email to sign up
+              Use your @mycaptain.in email to sign up
             </p>
           </div>
 
@@ -97,14 +97,14 @@ export default function SignUp() {
 
             <div>
               <label htmlFor="signup-email" className="block text-sm font-medium text-white/80 mb-1.5">
-                Email (@mycaptain.id)
+                Email (@mycaptain.in)
               </label>
               <input
                 id="signup-email"
                 type="email"
                 value={email}
                 onChange={(e) => { setEmail(e.target.value); setErrors((prev) => ({ ...prev, email: '' })); }}
-                placeholder="you@mycaptain.id"
+                placeholder="you@mycaptain.in"
                 className={`w-full rounded-xl border-2 bg-[#0E0E0E] text-white placeholder-white/40 px-4 py-3 text-sm transition-colors focus:ring-0 ${
                   errors.email ? 'border-red-600 focus:border-red-500' : 'border-[#2A2A2A] focus:border-[#FF7A00]'
                 }`}
