@@ -1,6 +1,27 @@
 import { google } from 'googleapis';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { sheetsConfig } from '../config/sheets.js';
 import { buildMappedRows } from '../utils/sheetHeaderMapping.js';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+/** Resolve credentials path: relative paths tried from backend root then project root. */
+function resolveCredentialsPath(credentialsPath, fs) {
+  if (path.isAbsolute(credentialsPath)) {
+    return fs.existsSync(credentialsPath) ? credentialsPath : null;
+  }
+  const backendRoot = path.resolve(__dirname, '..');
+  const tries = [
+    path.resolve(backendRoot, credentialsPath),
+    path.resolve(process.cwd(), credentialsPath),
+    path.resolve(process.cwd(), 'backend', credentialsPath),
+  ];
+  for (const p of tries) {
+    if (fs.existsSync(p)) return p;
+  }
+  return null;
+}
 
 async function getAuthClient() {
   let credentials;
@@ -8,9 +29,16 @@ async function getAuthClient() {
     credentials = JSON.parse(sheetsConfig.credentialsJson);
   } else if (sheetsConfig.credentialsPath) {
     const fs = await import('fs');
-    credentials = JSON.parse(fs.readFileSync(sheetsConfig.credentialsPath, 'utf8'));
+    const resolved = resolveCredentialsPath(sheetsConfig.credentialsPath, fs);
+    if (!resolved) {
+      throw new Error(
+        `Google credentials file not found. Tried: ${sheetsConfig.credentialsPath}. ` +
+        'Put service-account.json in the backend/ folder, or set GOOGLE_CREDENTIALS_JSON in .env instead.'
+      );
+    }
+    credentials = JSON.parse(fs.readFileSync(resolved, 'utf8'));
   } else {
-    throw new Error('Google credentials not configured');
+    throw new Error('Google credentials not configured. Set GOOGLE_CREDENTIALS_PATH or GOOGLE_CREDENTIALS_JSON in .env');
   }
   const auth = new google.auth.GoogleAuth({
     credentials,

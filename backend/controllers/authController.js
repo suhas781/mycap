@@ -3,7 +3,7 @@ import { findByEmail, comparePassword, updatePassword, createUser, countUsers } 
 import { JWT_SECRET } from '../middleware/auth.js';
 import { isValidLoginEmail, validateSignup, normalizeEmail } from '../utils/authValidation.js';
 
-/** Create account (signup). Email must be @mycaptain.id; default role boe. */
+/** Create account (signup). Email must be @mycaptain.in; default role boe. */
 export async function signup(req, res) {
   const { name, email, password, confirm_password } = req.body || {};
   const validation = validateSignup({ name, email, password, confirm_password });

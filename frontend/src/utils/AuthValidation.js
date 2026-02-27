@@ -21,7 +21,7 @@ export function validateSignupFields({ name, email, password, confirm_password }
 
   const e = normalizeEmail(email);
   if (!e) errors.email = 'Email is required';
-  else if (!e.endsWith(SIGNUP_EMAIL_DOMAIN)) errors.email = 'Email must end with @mycaptain.in';
+  else if (!e.endsWith(SIGNUP_EMAIL_DOMAIN)) errors.email = 'Email must be a @mycaptain.in address';
 
   if (!password) errors.password = 'Password is required';
   else if (password.length < MIN_PASSWORD_LENGTH) errors.password = 'Password must be at least 6 characters';
