@@ -168,6 +168,52 @@ export async function updateEmploymentStatus(userId, status) {
 }
 
 /**
+ * Delete a single user. Cleans FKs (same as bulk). reassignCampaignsToId: user id to assign campaigns to (e.g. current HR).
+ * Returns deleted user id or null if not found.
+ */
+export async function deleteUser(userId, reassignCampaignsToId = null) {
+  const id = Number(userId);
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    await client.query('DELETE FROM lead_sources WHERE team_lead_id = $1', [id]);
+    await client.query('UPDATE leads SET assigned_boe_id = NULL WHERE assigned_boe_id = $1', [id]);
+    await client.query('DELETE FROM lead_status_history WHERE updated_by = $1', [id]);
+    await client.query('UPDATE users SET reports_to_id = NULL WHERE reports_to_id = $1', [id]);
+    try {
+      await client.query('DELETE FROM campaign_assignments WHERE boe_id = $1', [id]);
+    } catch (_) {}
+    try {
+      await client.query('DELETE FROM campaign_logs WHERE boe_id = $1', [id]);
+    } catch (_) {}
+    try {
+      if (reassignCampaignsToId) {
+        await client.query('UPDATE campaigns SET created_by = $1 WHERE created_by = $2', [reassignCampaignsToId, id]);
+      } else {
+        const fallback = await client.query('SELECT id FROM users WHERE id != $1 AND role IN (\'hr\', \'admin\') LIMIT 1', [id]);
+        if (fallback.rows[0]) {
+          await client.query('UPDATE campaigns SET created_by = $1 WHERE created_by = $2', [fallback.rows[0].id, id]);
+        }
+      }
+    } catch (_) {}
+    try {
+      await client.query('DELETE FROM boe_campaigns WHERE boe_id = $1', [id]);
+    } catch (_) {}
+    try {
+      await client.query('DELETE FROM courses WHERE team_lead_id = $1', [id]);
+    } catch (_) {}
+    const del = await client.query('DELETE FROM users WHERE id = $1 RETURNING id', [id]);
+    await client.query('COMMIT');
+    return del.rowCount ? del.rows[0].id : null;
+  } catch (e) {
+    await client.query('ROLLBACK');
+    throw e;
+  } finally {
+    client.release();
+  }
+}
+
+/**
  * Remove all users except keepUserId. HR only. Cleans FKs: lead_sources, leads, lead_status_history,
  * campaign_assignments, campaign_logs, campaigns (reassign created_by), boe_campaigns, courses.
  */

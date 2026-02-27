@@ -6,19 +6,25 @@ import { buildMappedRows } from '../utils/sheetHeaderMapping.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-/** Resolve credentials path: relative paths tried from backend root then project root. */
+/** Resolve credentials path: relative paths tried from backend root then cwd. */
 function resolveCredentialsPath(credentialsPath, fs) {
-  if (path.isAbsolute(credentialsPath)) {
-    return fs.existsSync(credentialsPath) ? credentialsPath : null;
+  const normalized = path.normalize(credentialsPath.trim());
+  if (path.isAbsolute(normalized)) {
+    return fs.existsSync(normalized) ? normalized : null;
   }
   const backendRoot = path.resolve(__dirname, '..');
+  const baseName = path.basename(normalized) || 'service-account.json';
   const tries = [
-    path.resolve(backendRoot, credentialsPath),
-    path.resolve(process.cwd(), credentialsPath),
-    path.resolve(process.cwd(), 'backend', credentialsPath),
+    path.resolve(backendRoot, normalized),
+    path.resolve(backendRoot, baseName),
+    path.resolve(process.cwd(), normalized),
+    path.resolve(process.cwd(), 'backend', baseName),
+    path.resolve(process.cwd(), 'backend', normalized),
   ];
   for (const p of tries) {
-    if (fs.existsSync(p)) return p;
+    try {
+      if (fs.existsSync(p)) return p;
+    } catch (_) {}
   }
   return null;
 }
@@ -31,9 +37,11 @@ async function getAuthClient() {
     const fs = await import('fs');
     const resolved = resolveCredentialsPath(sheetsConfig.credentialsPath, fs);
     if (!resolved) {
+      const backendRoot = path.resolve(__dirname, '..');
+      const tried1 = path.resolve(backendRoot, path.normalize((sheetsConfig.credentialsPath || '').trim()));
       throw new Error(
-        `Google credentials file not found. Tried: ${sheetsConfig.credentialsPath}. ` +
-        'Put service-account.json in the backend/ folder, or set GOOGLE_CREDENTIALS_JSON in .env instead.'
+        `Google credentials file not found. Tried: ${tried1} and others. ` +
+        'Ensure service-account.json is in the backend/ folder (same folder as package.json), or set GOOGLE_CREDENTIALS_JSON in .env instead.'
       );
     }
     credentials = JSON.parse(fs.readFileSync(resolved, 'utf8'));

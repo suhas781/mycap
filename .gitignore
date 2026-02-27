@@ -8,6 +8,7 @@ node_modules/
 *.env
 !*.env.example
 service-account.json
+service-account-oneline.txt
 *-credentials.json
 
 # Build outputs

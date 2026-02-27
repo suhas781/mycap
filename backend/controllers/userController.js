@@ -1,4 +1,4 @@
-import { listBoes, listTeamLeads, listAllUsers, updateUserRole, updateReportsTo, updateEmploymentStatus, removeAllUsersExcept } from '../services/userService.js';
+import { listBoes, listTeamLeads, listAllUsers, updateUserRole, updateReportsTo, updateEmploymentStatus, removeAllUsersExcept, deleteUser } from '../services/userService.js';
 
 /**
  * GET /users/team-leads - Admin or HR. List team leads (id, name) for analytics team filter.
@@ -69,6 +69,24 @@ export async function setEmploymentStatus(req, res) {
     return res.json(updated);
   } catch (err) {
     return res.status(500).json({ error: err.message || 'Failed to update status' });
+  }
+}
+
+/**
+ * DELETE /users/:id - HR only. Delete one user. Cannot delete yourself.
+ */
+export async function deleteUserById(req, res) {
+  try {
+    const userId = Number(req.params.id);
+    const currentUserId = req.user?.user_id;
+    if (userId === currentUserId) {
+      return res.status(400).json({ error: 'You cannot delete your own account' });
+    }
+    const deleted = await deleteUser(userId, currentUserId);
+    if (!deleted) return res.status(404).json({ error: 'User not found' });
+    return res.json({ ok: true, deleted: userId });
+  } catch (err) {
+    return res.status(500).json({ error: err.message || 'Failed to delete user' });
   }
 }
 

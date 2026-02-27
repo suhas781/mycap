@@ -36,6 +36,7 @@ export default function HRDashboard() {
   const [savingStatusId, setSavingStatusId] = useState(null);
   const [removingAll, setRemovingAll] = useState(false);
   const [removeSuccess, setRemoveSuccess] = useState('');
+  const [deletingId, setDeletingId] = useState(null);
   const user = getStoredUser();
   const navigate = useNavigate();
 
@@ -144,6 +145,24 @@ export default function HRDashboard() {
       setError(err.message || 'Failed to update status');
     } finally {
       setSavingStatusId(null);
+    }
+  }
+
+  async function handleDeleteUser(u) {
+    if (u.id === user?.id) {
+      setError('You cannot delete your own account.');
+      return;
+    }
+    if (!window.confirm(`Delete user "${u.name}" (${u.email})? This cannot be undone.`)) return;
+    setDeletingId(u.id);
+    setError('');
+    try {
+      await api(`/users/${u.id}`, { method: 'DELETE' });
+      setUsers((prev) => prev.filter((x) => x.id !== u.id));
+    } catch (err) {
+      setError(err.message || 'Failed to delete user');
+    } finally {
+      setDeletingId(null);
     }
   }
 
@@ -287,6 +306,7 @@ export default function HRDashboard() {
                       <th className="px-4 py-3 font-semibold w-48">Change role</th>
                       <th className="px-4 py-3 font-semibold w-52">Reports to (Team Lead)</th>
                       <th className="px-4 py-3 font-semibold w-44">Status</th>
+                      <th className="px-4 py-3 font-semibold w-20">Delete</th>
                     </tr>
                   </thead>
                   <tbody className="text-white">
@@ -348,6 +368,17 @@ export default function HRDashboard() {
                             ))}
                           </select>
                           {savingStatusId === u.id && <span className="text-xs text-white/60 ml-1">Saving…</span>}
+                        </td>
+                        <td className="px-4 py-2">
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteUser(u)}
+                            disabled={u.id === user?.id || deletingId === u.id}
+                            className="rounded px-2 py-1 text-xs font-medium bg-red-600 hover:bg-red-700 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                            title={u.id === user?.id ? 'Cannot delete yourself' : 'Delete user'}
+                          >
+                            {deletingId === u.id ? '…' : 'Delete'}
+                          </button>
                         </td>
                       </tr>
                     ))}
