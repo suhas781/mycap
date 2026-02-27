@@ -7,6 +7,7 @@ import { api, getStoredUser, setToken, setStoredUser } from '../api';
 import CampaignAnalytics from '../components/campaigns/CampaignAnalytics';
 import TeamWiseCampaignSummary from '../components/campaigns/TeamWiseCampaignSummary';
 import BOEPerformanceByCampaign from '../components/campaigns/BOEPerformanceByCampaign';
+import CollegeEditorTable from '../components/campaigns/CollegeEditorTable';
 
 const ROLES = [
   { value: 'team_lead', label: 'Team Leader' },
@@ -23,6 +24,7 @@ const EMPLOYMENT_STATUSES = [
 
 const TAB_USERS = 'users';
 const TAB_SHEETS = 'sheets';
+const TAB_COLLEGES = 'colleges';
 const TAB_CAMPAIGNS = 'campaigns';
 
 export default function HRDashboard() {
@@ -261,6 +263,13 @@ export default function HRDashboard() {
             </button>
             <button
               type="button"
+              onClick={() => { setActiveTab(TAB_COLLEGES); setError(''); }}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === TAB_COLLEGES ? 'bg-primary-500 text-black' : 'text-white/70 hover:text-white hover:bg-surface'}`}
+            >
+              College list
+            </button>
+            <button
+              type="button"
               onClick={() => { setActiveTab(TAB_CAMPAIGNS); setError(''); }}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === TAB_CAMPAIGNS ? 'bg-primary-500 text-black' : 'text-white/70 hover:text-white hover:bg-surface'}`}
             >
@@ -405,6 +414,15 @@ export default function HRDashboard() {
               </div>
             )}
           </>
+        )}
+
+        {activeTab === TAB_COLLEGES && (
+          <div className="space-y-4">
+            <p className="text-white/70 text-sm">
+              View and manage the college list (Place, College name). Used in campaigns and lead assignment.
+            </p>
+            <CollegeEditorTable />
+          </div>
         )}
 
         {activeTab === TAB_SHEETS && (

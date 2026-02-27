@@ -137,6 +137,7 @@ export default function CollegeEditorTable() {
         <table className="w-full text-left">
           <thead>
             <tr className="bg-[#FF7A00] text-black">
+              <th className="px-5 py-4 font-semibold w-16">ID</th>
               <th className="px-5 py-4 font-semibold">Place</th>
               <th className="px-5 py-4 font-semibold">College Name</th>
               <th className="px-5 py-4 font-semibold w-36 text-right">Actions</th>
@@ -145,11 +146,12 @@ export default function CollegeEditorTable() {
           <tbody className="text-white">
             {colleges.length === 0 ? (
               <tr>
-                <td colSpan={3} className="px-5 py-8 text-center text-white/50">No colleges yet. Add one above.</td>
+                <td colSpan={4} className="px-5 py-8 text-center text-white/50">No colleges yet. Add one above.</td>
               </tr>
             ) : (
               colleges.map((c) => (
                 <tr key={c.id} className="border-t border-white/10 hover:bg-white/5">
+                  <td className="px-5 py-3 text-white/60 font-mono text-sm">{c.id}</td>
                   <td className="px-5 py-3">
                     {editingId === c.id ? (
                       <input

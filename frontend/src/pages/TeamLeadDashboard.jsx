@@ -44,7 +44,7 @@ const VIEW_MAP = {
 };
 
 export default function TeamLeadDashboard() {
-  const [view, setView] = useState('leads'); // 'leads' | 'analytics' | 'campaigns'
+  const [view, setView] = useState('leads'); // 'leads' | 'analytics' | 'campaigns' | 'colleges'
   const [activeTool, setActiveTool] = useState('overview');
   const [dateFrom, setDateFrom] = useState(null);
   const [dateTo, setDateTo] = useState(null);
@@ -163,6 +163,13 @@ export default function TeamLeadDashboard() {
               >
                 Courses
               </button>
+              <button
+                type="button"
+                onClick={() => setView('colleges')}
+                className={`py-2.5 px-3 text-sm font-semibold rounded-lg transition-all ${view === 'colleges' ? 'bg-primary-500 text-white shadow-sm' : 'text-slate-600 dark:text-white/70 hover:bg-slate-200/80 dark:hover:bg-white/10'}`}
+              >
+                College list
+              </button>
             </div>
           </div>
           {view === 'leads' && (
@@ -201,7 +208,7 @@ export default function TeamLeadDashboard() {
       <div className="flex-1 flex flex-col min-w-0 min-h-0">
         <header className="bg-white dark:bg-surface border-b border-slate-200/80 dark:border-dark-border px-6 py-4 flex items-center justify-between shrink-0 shadow-sm">
           <h2 className="font-display text-lg font-bold text-slate-900 dark:text-white tracking-tight">
-            {view === 'leads' ? 'Leads' : view === 'campaigns' ? 'Campaigns' : view === 'courses' ? 'Courses' : 'Team analytics'}
+            {view === 'leads' ? 'Leads' : view === 'campaigns' ? 'Campaigns' : view === 'courses' ? 'Courses' : view === 'colleges' ? 'College list' : 'Team analytics'}
           </h2>
           <div className="flex items-center gap-3">
             <span className="text-sm font-medium text-slate-600 dark:text-white/80">{user?.name}</span>
@@ -236,6 +243,11 @@ export default function TeamLeadDashboard() {
           ) : view === 'courses' ? (
             <div className="flex-1 min-h-0 overflow-auto p-4 sm:p-6">
               <TeamLeadCoursesView />
+            </div>
+          ) : view === 'colleges' ? (
+            <div className="flex-1 min-h-0 overflow-auto p-4 sm:p-6">
+              <p className="text-slate-500 dark:text-white/50 text-sm mb-4">View and manage the college list (ID, Place, College name). Used in campaigns and lead assignment.</p>
+              <CollegeEditorTable />
             </div>
           ) : view === 'campaigns' ? (
             <div className="flex-1 min-h-0 overflow-auto flex flex-col">

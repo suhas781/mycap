@@ -10,10 +10,10 @@ export async function list(req, res) {
   }
 }
 
-/** POST /colleges - Team Lead only. Body: { college_name, place } */
+/** POST /colleges - Team Lead or HR. Body: { college_name, place } */
 export async function create(req, res) {
-  if (req.user?.role !== 'team_lead') {
-    return res.status(403).json({ error: 'Team Lead access required' });
+  if (req.user?.role !== 'team_lead' && req.user?.role !== 'hr') {
+    return res.status(403).json({ error: 'Team Lead or HR access required' });
   }
   try {
     const { college_name, place } = req.body;
@@ -25,10 +25,10 @@ export async function create(req, res) {
   }
 }
 
-/** PUT /colleges/:id - Team Lead only. Body: { college_name, place } */
+/** PUT /colleges/:id - Team Lead or HR. Body: { college_name, place } */
 export async function update(req, res) {
-  if (req.user?.role !== 'team_lead') {
-    return res.status(403).json({ error: 'Team Lead access required' });
+  if (req.user?.role !== 'team_lead' && req.user?.role !== 'hr') {
+    return res.status(403).json({ error: 'Team Lead or HR access required' });
   }
   try {
     const { college_name, place } = req.body;
@@ -40,10 +40,10 @@ export async function update(req, res) {
   }
 }
 
-/** DELETE /colleges/:id - Team Lead only */
+/** DELETE /colleges/:id - Team Lead or HR */
 export async function remove(req, res) {
-  if (req.user?.role !== 'team_lead') {
-    return res.status(403).json({ error: 'Team Lead access required' });
+  if (req.user?.role !== 'team_lead' && req.user?.role !== 'hr') {
+    return res.status(403).json({ error: 'Team Lead or HR access required' });
   }
   try {
     const ok = await collegeService.deleteCollege(Number(req.params.id));
